@@ -38,6 +38,5 @@ FROM deals d
 JOIN contacts c ON d.contact_id = c.contact_id
 WHERE d.deal_created_at < c.contact_created_at;
 
--- Decisão técnica: Os registros serão mantidos para preservar o volume histórico, 
--- considerando uma possível migração de dados ou registro retroativo no CRM.
+-- Decisão técnica: Os registros serão mantidos para preservar o volume histórico, considerando uma possível migração de dados ou registro retroativo no CRM.
 ```
