@@ -178,13 +178,13 @@ FROM deals_financeiro;
 
 | Origem | Receita Total | Volume de Vendas |
 |--------|---------------|------------------|
-|Meta Ads|	403664.0	|26|
-|Parcerias|	340028.0	|17|
-|Orgânico|	306210.0	|15|
-|Google Ads|	296305.0	|18|
-|Indicação|	284766.0|	16|
-|Outbound|	254665.0|	13|
-|Eventos|	224241.0|	14|
+|Meta Ads|	R$ 403.664	|26|
+|Parcerias|	R$ 340.028	|17|
+|Orgânico|	R$ 306.210	|15|
+|Google Ads|	R$ 296.305	|18|
+|Indicação|	R$ 284.766|	16|
+|Outbound|	R$ 254.665|	13|
+|Eventos|	R$ 224.241|	14|
 
 Código SQL utilizado:
 
