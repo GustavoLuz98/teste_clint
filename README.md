@@ -107,19 +107,19 @@ WHERE status = 'won' AND valor != 'R$ 0,00';
 ```
 ### 2.5 Taxa de conversão entre etapas
 
-2.5 Taxa de conversão entre etapas
-
 Abaixo, a tabela consolidada com os indicadores de eficiência do funil da Clint:
 
-|Etapa|Volume|Conversão por etapa|Conversão Acumulada
-1. Lead	815		100.0%
-2. Deal Criado	632	77.55%	77.55%
-3. MQL	437	69.15%	53.62%
-4. Reunião Agendada	461	105.49%	56.56%
-5. Reunião Realizada	463	100.43%	56.81%
-6. Proposta	419	90.5%	51.41%
-7. Venda (Won)	121	28.88%	14.85%
+| Etapa | Volume | Conversão por etapa | Conversão Acumulada |
+|-------|--------|---------------------|---------------------| 
+|Lead   |815     |0                    |100.0%               |
+|Deal Criado|632 |77.55%               |77.55%               |
+|MQL        |437 |69.15%               |53.62%               |
+|Reunião Agendada|461|105.49%          |56.56%               |
+|Reunião Realizada|463|100.43%         |56.81%               |
+|Proposta|419|90.5%|51.41%                                   |
+|Venda(Won)|121|28.88%|14.85%                                |
 
+Lógica utilizada para a obtenção das respostas.
 
 ```sql
 WITH funnel_base AS (
@@ -146,4 +146,123 @@ FROM funnel_base
 ORDER BY ordem;
 ```
 
+As taxas superiores a 100% nas etapas de Reunião indicam que negócios estão pulando o status de MQL ou sendo registrados retroativamente no CRM, um ponto de melhoria operacional identificado na análise.
+
+### 2.6 Identificação do Gargalo
+
+O principal gargalo do funil encontra-se na transição de Proposta para Venda (28.88%). Embora a empresa seja eficiente em agendar e realizar reuniões, a perda de 71% dos leads na última milha do funil é o ponto de maior impacto na receita.
+
+## 3. Análise de Receita (Etapa 3)
+
+Nesta etapa, cruzei os dados de conversão com os valores financeiros para entender o ROI (Retorno sobre Investimento) por canal e segmento.
+
+## 3.1 Receita total = R$ 2.143.280,00 e o Ticket Médio = R$ 17.713,06
+Filtrei vendas = 'won' e maiores que R$ 0,00 (conforme auditoria anterior dos dados)
+
+```sql
+WITH deals_financeiro AS (
+    SELECT 
+        CAST(REPLACE(REPLACE(REPLACE(valor, 'R$ ', ''), '.', ''), ',', '.') AS REAL) AS valor_num
+    FROM deals
+    WHERE status = 'won' AND valor != 'R$ 0,00'
+)
+SELECT 
+    SUM(valor_num) AS receita_total,
+    AVG(valor_num) AS ticket_medio
+FROM deals_financeiro;
+```
+
+## 3.2 Receita por Origem de Marketing
+
+| Origem | Receita Total | Volume de Vendas |
+|--------|---------------|------------------|
+|Meta Ads|	403664.0	|26|
+|Parcerias|	340028.0	|17|
+|Orgânico|	306210.0	|15|
+|Google Ads|	296305.0	|18|
+|Indicação|	284766.0|	16|
+|Outbound|	254665.0|	13|
+|Eventos|	224241.0|	14|
+
+Código SQL utilizado:
+
+```sql
+SELECT 
+    c.origem,
+    SUM(CAST(REPLACE(REPLACE(REPLACE(d.valor, 'R$ ', ''), '.', ''), ',', '.') AS REAL)) AS receita_total,
+    COUNT(d.deal_id) AS volume_vendas
+FROM deals d
+JOIN vw_contacts_unicos c ON d.contact_id = c.contact_id
+WHERE d.status = 'won' AND d.valor != 'R$ 0,00'
+GROUP BY c.origem
+ORDER BY receita_total DESC;
+```
+
+## 3.3 Receita por Segmento
+
+| Segmento | Receita Total | Ticket Médio |
+|----------|---------------|--------------|
+|Educação|	410723.0|	19558.2380952381|
+|Advocacia|	360518.0|	18025.9|
+|Saúde|	299775.0|	21412.5|
+|Serviços|	288564.0|	19237.6|
+|Agência|	271857.0|	19418.3571428571|
+|Infoprodutor|	194011.0|	12934.0666666667|
+|Indústria|	166907.0|	16690.7|
+|E-commerce|	117524.0|	11752.4|
+
+Código SQL utilizado:
+
+```sql
+SELECT 
+    c.segmento,
+    SUM(CAST(REPLACE(REPLACE(REPLACE(d.valor, 'R$ ', ''), '.', ''), ',', '.') AS REAL)) AS receita_total,
+    AVG(CAST(REPLACE(REPLACE(REPLACE(d.valor, 'R$ ', ''), '.', ''), ',', '.') AS REAL)) AS ticket_medio_segmento
+FROM deals d
+JOIN vw_contacts_unicos c ON d.contact_id = c.contact_id
+WHERE d.status = 'won' AND d.valor != 'R$ 0,00'
+GROUP BY c.segmento
+ORDER BY receita_total DESC;
+```
+
+## 3.4 Tempo Médio de Ciclo de Vendas = 67 Dias
+
+Como 'Venda' não é um estágio na pipeline_events, usamos a última movimentação do deal para calcular o tempo decorrido desde a criação.
+
+```sql
+WITH data_fechamento AS (
+    SELECT deal_id, MAX(moved_at) AS ultima_movimentacao
+    FROM pipeline_events
+    GROUP BY deal_id
+)
+SELECT 
+    AVG(julianday(df.ultima_movimentacao) - julianday(d.deal_created_at)) AS ciclo_medio_dias
+FROM deals d
+JOIN data_fechamento df ON d.deal_id = df.deal_id
+WHERE d.status = 'won' AND d.valor != 'R$ 0,00';
+```
+
+## 3.5 Performance dos Closers (Receita Por Vendedor)
+
+| Closer | Receita Fechada | Total de Vendas |
+|----------|---------------|--------------|
+|Camile Silveira|	520070.0|	28|
+|Gustavo|	404889.0|	22|
+|Norton	|359838.0|	21|
+|Rafael Grizza|	346299.0|	21|
+|Beatriz	|267052.0|	18|
+|Luis|	245132.0|	11|
+
+Código SQL utilizado:
+
+```sql
+SELECT 
+    closer,
+    SUM(CAST(REPLACE(REPLACE(REPLACE(valor, 'R$ ', ''), '.', ''), ',', '.') AS REAL)) AS receita_fechada,
+    COUNT(*) AS total_vendas
+FROM deals
+WHERE status = 'won' AND valor != 'R$ 0,00'
+GROUP BY closer
+ORDER BY receita_fechada DESC;
+```
 
