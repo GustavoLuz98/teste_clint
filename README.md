@@ -111,7 +111,7 @@ Abaixo, a tabela consolidada com os indicadores de eficiência do funil da Clint
 
 | Etapa | Volume | Conversão por etapa | Conversão Acumulada |
 |-------|--------|---------------------|---------------------| 
-|Lead   |815     |0                    |100.0%               |
+|Lead   |815     |-                   |100.0%               |
 |Deal Criado|632 |77.55%               |77.55%               |
 |MQL        |437 |69.15%               |53.62%               |
 |Reunião Agendada|461|105.49%          |56.56%               |
