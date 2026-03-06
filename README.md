@@ -107,14 +107,69 @@ WHERE status = 'won' AND valor != 'R$ 0,00';
 ```
 ### 2.5 Taxa de conversão entre etapas
 
-|Etapa|Volume|Conversão por etapa|Conversão Acumulada|
-|1.| Lead|	815	|	100.0% |
-|2.|Deal Criado|	632|	77.55%|	77.55%|
-|3.| MQL|	437|	69.15%	|53.62%|
-|4.| Reunião Agendada|	461|	105.49%|	56.56%|
-|5.| Reunião Realizada|	463|	100.43%|	56.81%|
-|6.| Proposta|	419|	90.5%|	51.41%|
-|7.| Venda (Won)|	121|	28.88%|	14.85%|
+Etapa
+
+Volume
+
+Conversão por Etapa
+
+Conversão Acumulada
+
+1. Lead
+
+815
+
+-
+
+100.0%
+
+2. Deal Criado
+
+632
+
+77.55%
+
+77.55%
+
+3. MQL
+
+437
+
+69.15%
+
+53.62%
+
+4. Reunião Agendada
+
+461
+
+105.49%
+
+56.56%
+
+5. Reunião Realizada
+
+463
+
+100.43%
+
+56.81%
+
+6. Proposta
+
+419
+
+90.50%
+
+51.41%
+
+7. Venda (Won)
+
+121
+
+28.88%
+
+14.85%
 
 
 ```sql
