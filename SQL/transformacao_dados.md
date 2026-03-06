@@ -32,11 +32,22 @@ WHERE deal_id NOT IN (SELECT deal_id FROM deals);
 Análise da cronologia entre a criação do contato e a criação do negócio. Foi identificada uma divergência em aproximadamente 50% da base, onde o negócio consta como criado antes do contato.
 
 ```sql
--- Query de auditoria para diagnóstico de cronologia
 SELECT d.deal_id, d.deal_created_at, c.contact_created_at
 FROM deals d
 JOIN contacts c ON d.contact_id = c.contact_id
 WHERE d.deal_created_at < c.contact_created_at;
-
--- Decisão técnica: Os registros serão mantidos para preservar o volume histórico, considerando uma possível migração de dados ou registro retroativo no CRM.
 ```
+
+Decisão técnica: Os registros serão mantidos para preservar o volume histórico, considerando uma possível migração de dados ou registro retroativo no CRM.
+
+## 4. Análise de Valores Inconsistentes
+Identifiquei uma falha crítica na integridade dos dados de receita, onde negócios marcados como "Ganho" (won) apresentam valor zerado. Foi necessário validar a string exata para evitar falsos positivos com valores que possuem centavos (ex: R$ 10.000,00).
+
+```sql
+-- Identificação precisa de vendas ganhas sem valor real (R$ 0,00)
+-- Retornou 3 linhas de inconsistência total
+SELECT * FROM deals 
+WHERE status = 'won' AND valor = 'R$ 0,00';
+```
+Decisão Técnica: Estes registros serão sinalizados como "Vendas com Erro de Preenchimento". Para cálculos de Ticket Médio e Receita Total, esses valores zerados serão desconsiderados para não distorcer a realidade financeira da operação.
+
