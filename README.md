@@ -204,14 +204,14 @@ ORDER BY receita_total DESC;
 
 | Segmento | Receita Total | Ticket Médio |
 |----------|---------------|--------------|
-|Educação|	R$ 410.723|	19558.2380952381|
-|Advocacia|	R$ 360.518|	18025.9|
-|Saúde|	R$ 299.775|	21412.5|
-|Serviços|	R$ 288.564|	19237.6|
-|Agência|	R$ 271.857|	19418.3571428571|
-|Infoprodutor|	R$ 194.011|	12934.0666666667|
-|Indústria|	R$ 166.907|	16690.7|
-|E-commerce|	R$ 117.524|	11752.4|
+|Educação|	R$ 410.723|	R$ 19.558|
+|Advocacia|	R$ 360.518|	R$ 18.025|
+|Saúde|	R$ 299.775|	R$ 21.412|
+|Serviços|	R$ 288.564|	R$ 19.237|
+|Agência|	R$ 271.857|	R$ 19.418|
+|Infoprodutor|	R$ 194.011|	R$ 12.934|
+|Indústria|	R$ 166.907|	R$ 16.690|
+|E-commerce|	R$ 117.524|	R$ 11.752|
 
 Código SQL utilizado:
 
