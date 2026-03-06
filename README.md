@@ -61,3 +61,85 @@ Decisão Técnica: Estes registros serão sinalizados como "Vendas com Erro de P
 * **Banco de Dados:** SQLite para processamento local.
 * **Ferramenta de Gestão:** DB Browser for SQLite.
 * **Linguagem:** SQL (DQL e DML) para transformação e limpeza.
+
+## 2. Reconstrução do funil de vendas (Etapa 2)
+
+### 2.1 Volume Total de Leads (Únicos) = 815
+
+```sql
+SELECT COUNT(*) AS total_leads 
+FROM vw_contacts_unicos;
+```
+### 2.2 Volume de Deals Criados = 632
+
+```sql
+SELECT COUNT(*) AS total_deals 
+FROM deals;
+```
+
+### 2.3 Volume por Etapa do Funil (Pipeline Real)
+
+Esta query lista quantos negócios passaram por cada estágio definido.
+
+Reunião Realizada = 463
+Reunião Agendada = 461
+MQL = 437
+Proposta = 419
+
+```sql
+SELECT 
+    stage, 
+    COUNT(DISTINCT deal_id) AS volume_negocios
+FROM pipeline_events
+WHERE stage IN ('MQL', 'Reunião Agendada', 'Reunião Realizada', 'Proposta')
+GROUP BY stage
+ORDER BY volume_negocios DESC;
+```
+
+### 2.4 Volume de Vendas Realizadas (Validadas) = 121
+
+Filtrei as 3 vendas com valor zerado identificadas na auditoria.
+
+```sql
+SELECT COUNT(*) AS vendas_realizadas
+FROM deals
+WHERE status = 'won' AND valor != 'R$ 0,00';
+```
+### 2.5 Taxa de conversão entre etapas
+
+|Etapa|Volume|Conversão por etapa|Conversão Acumulada|
+|1.| Lead|	815	|	100.0% |
+|2.|Deal Criado|	632|	77.55%|	77.55%|
+|3.| MQL|	437|	69.15%	|53.62%|
+|4.| Reunião Agendada|	461|	105.49%|	56.56%|
+|5.| Reunião Realizada|	463|	100.43%|	56.81%|
+|6.| Proposta|	419|	90.5%|	51.41%|
+|7.| Venda (Won)|	121|	28.88%|	14.85%|
+
+
+```sql
+WITH funnel_base AS (
+    SELECT '1. Lead' AS etapa, COUNT(*) AS volume, 1 AS ordem FROM vw_contacts_unicos
+    UNION ALL
+    SELECT '2. Deal Criado', COUNT(*), 2 FROM deals
+    UNION ALL
+    SELECT '3. MQL', COUNT(DISTINCT deal_id), 3 FROM pipeline_events WHERE stage = 'MQL'
+    UNION ALL
+    SELECT '4. Reunião Agendada', COUNT(DISTINCT deal_id), 4 FROM pipeline_events WHERE stage = 'Reunião Agendada'
+    UNION ALL
+    SELECT '5. Reunião Realizada', COUNT(DISTINCT deal_id), 5 FROM pipeline_events WHERE stage = 'Reunião Realizada'
+    UNION ALL
+    SELECT '6. Proposta', COUNT(DISTINCT deal_id), 6 FROM pipeline_events WHERE stage = 'Proposta'
+    UNION ALL
+    SELECT '7. Venda (Won)', COUNT(*), 7 FROM deals WHERE status = 'won' AND valor != 'R$ 0,00'
+)
+SELECT 
+    etapa, 
+    volume,
+    ROUND(CAST(volume AS REAL) / LAG(volume) OVER (ORDER BY ordem) * 100, 2) || '%' AS conversao_etapa,
+    ROUND(CAST(volume AS REAL) / (SELECT volume FROM funnel_base WHERE ordem = 1) * 100, 2) || '%' AS conversao_acumulada
+FROM funnel_base
+ORDER BY ordem;
+```
+
+
