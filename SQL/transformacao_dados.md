@@ -14,3 +14,5 @@ CREATE VIEW vw_contacts_unicos AS
 SELECT * FROM contacts 
 WHERE tags NOT LIKE '%DUPLICADO%' OR tags IS NULL;
 
+## 2. Tratamento de Leads Duplicados
+
