@@ -199,6 +199,28 @@ WHERE d.status = 'won' AND d.valor != 'R$ 0,00'
 GROUP BY c.origem
 ORDER BY receita_total DESC;
 ```
+Identifiquei uma diferença de R$ 33.401,00 entre a Receita Total e a Receita por Origem. Esta query identifica quais negócios (deals) ficaram sem atribuição de marketing:
+
+```sql
+SELECT 
+    d.deal_id, 
+    d.contact_id, 
+    d.valor, 
+    c.origem AS origem_encontrada
+FROM deals d
+LEFT JOIN vw_contacts_unicos c ON d.contact_id = c.contact_id
+WHERE d.status = 'won' 
+  AND d.valor != 'R$ 0,00'
+  AND (c.contact_id IS NULL OR c.origem IS NULL OR c.origem = '');
+```
+
+| deal_id | contact_id | Valor | Origem Encontrada |
+|---------|------------|-------|-------------------|
+|d_00250|	c_00809	|R$ 25.074|	NULL|
+|d_00338|	c_00811	|R$ 8.327|	NULL|
+
+
+Identifiquei que 1,5% da receita (R$ 33.401,00) provém de fontes não rastreadas ou contatos duplicados. Isso indica uma oportunidade de melhoria no tracking de marketing ou na higienização automática do CRM para evitar que vendas sejam fechadas em cadastros secundários.
 
 ## 3.3 Receita por Segmento
 
