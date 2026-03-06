@@ -208,7 +208,7 @@ SELECT
     d.valor, 
     c.segmento,
     c.origem,
-    -- Identificamos o motivo da falha na atribuição
+    -- Identificando o motivo da falha na atribuição
     CASE 
         WHEN c.contact_id IS NULL THEN 'Contato filtrado ou inexistente'
         WHEN c.segmento IS NULL OR c.segmento = '' THEN 'Segmento não preenchido'
