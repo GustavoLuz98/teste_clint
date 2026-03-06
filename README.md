@@ -199,28 +199,37 @@ WHERE d.status = 'won' AND d.valor != 'R$ 0,00'
 GROUP BY c.origem
 ORDER BY receita_total DESC;
 ```
-Identifiquei uma diferença de R$ 33.401,00 entre a Receita Total e a Receita por Origem. Esta query identifica quais negócios (deals) ficaram sem atribuição de marketing:
+Durante a análise da Etapa 3, identifiquei que a soma da receita por Origem e Segmento (R$ 2.109.879,00) apresenta uma diferença de R$ 33.401,00 em relação à Receita Total (R$ 2.143.280,00).
 
 ```sql
 SELECT 
     d.deal_id, 
     d.contact_id, 
     d.valor, 
-    c.origem AS origem_encontrada
+    c.segmento,
+    c.origem,
+    -- Identificamos o motivo da falha na atribuição
+    CASE 
+        WHEN c.contact_id IS NULL THEN 'Contato filtrado ou inexistente'
+        WHEN c.segmento IS NULL OR c.segmento = '' THEN 'Segmento não preenchido'
+        ELSE 'Outro erro de integridade'
+    END AS motivo_discrepancia
 FROM deals d
 LEFT JOIN vw_contacts_unicos c ON d.contact_id = c.contact_id
 WHERE d.status = 'won' 
   AND d.valor != 'R$ 0,00'
-  AND (c.contact_id IS NULL OR c.origem IS NULL OR c.origem = '');
+  AND (c.contact_id IS NULL OR c.segmento IS NULL OR c.segmento = '');
 ```
 
-| deal_id | contact_id | Valor | Origem Encontrada |
-|---------|------------|-------|-------------------|
-|d_00250|	c_00809	|R$ 25.074|	NULL|
-|d_00338|	c_00811	|R$ 8.327|	NULL|
+| deal_id | contact_id | Valor | Segmento | Origem |Motivo|
+|---------|------------|-------|----------|--------|------|
+|d_00250|	c_00809	|R$ 25.074|	NULL|NULL|Contato filtrado ou inexistente|
+|d_00338|	c_00811	|R$ 8.327|	NULL|NULL|Contato filtrado ou inexistente|
 
 
-Identifiquei que 1,5% da receita (R$ 33.401,00) provém de fontes não rastreadas ou contatos duplicados. Isso indica uma oportunidade de melhoria no tracking de marketing ou na higienização automática do CRM para evitar que vendas sejam fechadas em cadastros secundários.
+A discrepância de 1,55% é considerada baixa para fins de análise de tendência, porém crítica para fins de conciliação financeira.
+
+Recomendação Técnica: Implementar uma trava de sistema (ou automação via API) que impeça a alteração do status de um negócio para "Won" caso o contacto associado não possua os campos de Origem e Segmento preenchidos. Isso garantirá 100% de rastreabilidade do ROI de marketing e performance por setor.
 
 ## 3.3 Receita por Segmento
 
