@@ -81,10 +81,12 @@ FROM deals;
 
 Esta query lista quantos negócios passaram por cada estágio definido.
 
-Reunião Realizada = 463
-Reunião Agendada = 461
-MQL = 437
-Proposta = 419
+| Etapa do Funil | Volume |
+|----------------|--------|
+|Reunião Realizada|	463|
+|Reunião Agendada|	461|
+|MQL|	437|
+|Proposta	|419|
 
 ```sql
 SELECT 
