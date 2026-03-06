@@ -59,8 +59,8 @@ Decisão Técnica: Estes registros serão sinalizados como "Vendas com Erro de P
 
 ### 1.2 Stack Tecnológica Utilizada
 * **Banco de Dados:** SQLite para processamento local.
-* **Ferramenta de Gestão:** DB Browser for SQLite.
-* **Linguagem:** SQL (DQL e DML) para transformação e limpeza.
+* **Ferramenta de Gestão:** DB Browser.
+* **Linguagem:** SQL para transformação e limpeza.
 
 ## 2. Reconstrução do funil de vendas (Etapa 2)
 
