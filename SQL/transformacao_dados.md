@@ -13,6 +13,31 @@ WHERE tags LIKE '%DUPLICADO%';
 CREATE VIEW vw_contacts_unicos AS
 SELECT * FROM contacts 
 WHERE tags NOT LIKE '%DUPLICADO%' OR tags IS NULL;
+```
 
-## 2. Tratamento de Leads Duplicados
+## 2. Saneamento de Chaves Órfãs
+Remoção de eventos de movimentação no funil que não possuem um negócio (deal_id) correspondente na tabela principal, garantindo a integridade referencial.
 
+```sql
+-- Identificação de registros órfãos na pipeline_events (Retornou 18 linhas)
+SELECT * FROM pipeline_events 
+WHERE deal_id NOT IN (SELECT deal_id FROM deals);
+
+-- Remoção dos registros sem correspondência para não afetar as taxas de conversão
+DELETE FROM pipeline_events 
+WHERE deal_id NOT IN (SELECT deal_id FROM deals);
+```
+
+## 3. Verificação de Consistência Temporal
+Análise da cronologia entre a criação do contato e a criação do negócio. Foi identificada uma divergência em aproximadamente 50% da base, onde o negócio consta como criado antes do contato.
+
+```sql
+-- Query de auditoria para diagnóstico de cronologia
+SELECT d.deal_id, d.deal_created_at, c.contact_created_at
+FROM deals d
+JOIN contacts c ON d.contact_id = c.contact_id
+WHERE d.deal_created_at < c.contact_created_at;
+
+-- Decisão técnica: Os registros serão mantidos para preservar o volume histórico, 
+-- considerando uma possível migração de dados ou registro retroativo no CRM.
+```
