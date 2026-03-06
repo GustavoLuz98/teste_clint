@@ -204,14 +204,14 @@ ORDER BY receita_total DESC;
 
 | Segmento | Receita Total | Ticket Médio |
 |----------|---------------|--------------|
-|Educação|	410723.0|	19558.2380952381|
-|Advocacia|	360518.0|	18025.9|
-|Saúde|	299775.0|	21412.5|
-|Serviços|	288564.0|	19237.6|
-|Agência|	271857.0|	19418.3571428571|
-|Infoprodutor|	194011.0|	12934.0666666667|
-|Indústria|	166907.0|	16690.7|
-|E-commerce|	117524.0|	11752.4|
+|Educação|	R$ 410.723|	19558.2380952381|
+|Advocacia|	R$ 360.518|	18025.9|
+|Saúde|	R$ 299.775|	21412.5|
+|Serviços|	R$ 288.564|	19237.6|
+|Agência|	R$ 271.857|	19418.3571428571|
+|Infoprodutor|	R$ 194.011|	12934.0666666667|
+|Indústria|	R$ 166.907|	16690.7|
+|E-commerce|	R$ 117.524|	11752.4|
 
 Código SQL utilizado:
 
@@ -248,12 +248,12 @@ WHERE d.status = 'won' AND d.valor != 'R$ 0,00';
 
 | Closer | Receita Fechada | Total de Vendas |
 |----------|---------------|--------------|
-|Camile Silveira|	520070.0|	28|
-|Gustavo|	404889.0|	22|
-|Norton	|359838.0|	21|
-|Rafael Grizza|	346299.0|	21|
-|Beatriz	|267052.0|	18|
-|Luis|	245132.0|	11|
+|Camile Silveira|	R$ 520.070|	28|
+|Gustavo|	R$ 404.889|	22|
+|Norton	|R$ 359.838|	21|
+|Rafael Grizza|	R$ 346.299|	21|
+|Beatriz	|R$ 267.052|	18|
+|Luis|	R$ 245.132|	11|
 
 Código SQL utilizado:
 
