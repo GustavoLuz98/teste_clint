@@ -34,7 +34,7 @@ DELETE FROM pipeline_events
 WHERE deal_id NOT IN (SELECT deal_id FROM deals);
 ```
 
-## 1.1.3. Verificação de Consistência Temporal
+#### 1.1.3. Verificação de Consistência Temporal
 Análise da cronologia entre a criação do contato e a criação do negócio. Foi identificada uma divergência em aproximadamente 50% da base, onde o negócio consta como criado antes do contato.
 
 ```sql
@@ -46,7 +46,7 @@ WHERE d.deal_created_at < c.contact_created_at;
 
 Decisão técnica: Os registros serão mantidos para preservar o volume histórico, considerando uma possível migração de dados ou registro retroativo no CRM.
 
-## 1.1.4. Análise de Valores Inconsistentes
+#### 1.1.4. Análise de Valores Inconsistentes
 Identifiquei uma falha crítica na integridade dos dados de receita, onde negócios marcados como "Ganho" (won) apresentam valor zerado. Foi necessário validar a string exata para evitar falsos positivos com valores que possuem centavos (ex: R$ 10.000,00).
 
 ```sql
