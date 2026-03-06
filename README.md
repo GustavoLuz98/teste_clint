@@ -6,16 +6,56 @@ Antes de iniciar as análises de negócio, foi realizada uma auditoria técnica 
 ### 1.1 Inconsistências Identificadas
 Durante o processo de exploração e limpeza via SQL, foram detectados os seguintes pontos:
 
-* **Registros Duplicados (Tabela `contacts`):** Identificamos leads duplicados sinalizados pela tag `DUPLICADO` na coluna `tags`. 
-    * **Impacto:** Risco de inflar o volume de entrada do funil e distorcer taxas de conversão.
-    * **Ação:** Criação de uma camada de visualização (View) que filtra registros com essa tag.
+#### 1.1.1 Tratamento de Leads Duplicados
+Identificação e exclusão lógica de registros marcados com a tag "DUPLICADO" na tabela de contatos para evitar a inflação das métricas de topo de funil.
 
-* **Chaves Órfãs (Tabela `pipeline_events`):** Foram encontrados 18 eventos de movimentação no funil vinculados a `deal_id` que não existem na tabela principal de Negócios (`deals`).
-    * **Impacto:** Perda de rastreabilidade e métricas de funil sem origem comprovada.
-    * **Ação:** Desconsideração desses registros nas métricas de conversão para manter a fidelidade aos negócios validados.
+```sql
+-- Consulta para validar volume de duplicatas antes da análise
+SELECT COUNT(*) AS total_duplicados
+FROM contacts 
+WHERE tags LIKE '%DUPLICADO%';
 
-* **Anomalias de Cronologia:** Notou-se que cerca de 50% dos contatos possuem data de criação posterior à criação do negócio.
-    * **Decisão Técnica:** Optou-se por manter os dados conforme o original, assumindo que `contact_created_at` pode representar um registro administrativo posterior ou fruto de migração de sistemas legados.
+-- Criação de uma View para garantir que as próximas etapas usem apenas dados únicos
+CREATE VIEW vw_contacts_unicos AS
+SELECT * FROM contacts 
+WHERE tags NOT LIKE '%DUPLICADO%' OR tags IS NULL;
+```
+
+#### 1.1.2 Saneamento de Chaves Órfãs
+Remoção de eventos de movimentação no funil que não possuem um negócio (deal_id) correspondente na tabela principal, garantindo a integridade referencial.
+
+```sql
+-- Identificação de registros órfãos na pipeline_events (Retornou 18 linhas)
+SELECT * FROM pipeline_events 
+WHERE deal_id NOT IN (SELECT deal_id FROM deals);
+
+-- Remoção dos registros sem correspondência para não afetar as taxas de conversão
+DELETE FROM pipeline_events 
+WHERE deal_id NOT IN (SELECT deal_id FROM deals);
+```
+
+## 1.1.3. Verificação de Consistência Temporal
+Análise da cronologia entre a criação do contato e a criação do negócio. Foi identificada uma divergência em aproximadamente 50% da base, onde o negócio consta como criado antes do contato.
+
+```sql
+SELECT d.deal_id, d.deal_created_at, c.contact_created_at
+FROM deals d
+JOIN contacts c ON d.contact_id = c.contact_id
+WHERE d.deal_created_at < c.contact_created_at;
+```
+
+Decisão técnica: Os registros serão mantidos para preservar o volume histórico, considerando uma possível migração de dados ou registro retroativo no CRM.
+
+## 1.1.4. Análise de Valores Inconsistentes
+Identifiquei uma falha crítica na integridade dos dados de receita, onde negócios marcados como "Ganho" (won) apresentam valor zerado. Foi necessário validar a string exata para evitar falsos positivos com valores que possuem centavos (ex: R$ 10.000,00).
+
+```sql
+-- Identificação precisa de vendas ganhas sem valor real (R$ 0,00)
+-- Retornou 3 linhas de inconsistência total
+SELECT * FROM deals 
+WHERE status = 'won' AND valor = 'R$ 0,00';
+```
+Decisão Técnica: Estes registros serão sinalizados como "Vendas com Erro de Preenchimento". Para cálculos de Ticket Médio e Receita Total, esses valores zerados serão desconsiderados para não distorcer a realidade financeira da operação.
 
 ### 1.2 Stack Tecnológica Utilizada
 * **Banco de Dados:** SQLite para processamento local.
