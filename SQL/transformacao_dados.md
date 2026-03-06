@@ -1,8 +1,9 @@
 # Manipulações de dados em SQL
 
 ## 1. Tratamento de Leads Duplicados
-Identificação e exclusão lógica de registros marcados com a tag "DUPLICADO" na tabela de contatos.
+Identificação e exclusão lógica de registros marcados com a tag "DUPLICADO" na tabela de contatos para evitar a inflação das métricas de topo de funil.
 
+```sql
 -- Consulta para validar volume de duplicatas antes da análise
 SELECT COUNT(*) AS total_duplicados
 FROM contacts 
@@ -12,3 +13,4 @@ WHERE tags LIKE '%DUPLICADO%';
 CREATE VIEW vw_contacts_unicos AS
 SELECT * FROM contacts 
 WHERE tags NOT LIKE '%DUPLICADO%' OR tags IS NULL;
+
