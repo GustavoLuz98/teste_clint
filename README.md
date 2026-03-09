@@ -342,13 +342,13 @@ Como a dimensão d_contacts foi higienizada, a integridade referencial do Power 
 
 Para o cálculo dinâmico das métricas no Dashboard, foram criadas medidas explícitas em DAX, respeitando as regras de validação
 
-* 1. Total de Leads Higienizados
+1. Total de Leads Higienizados
 
 ```dax
 Total Leads = COUNTROWS('d_contacts')
 ```
 
-* 2. Volume de Vendas (Filtrando Status e Valor)
+2. Volume de Vendas (Filtrando Status e Valor)
 
 ```dax
 CALCULATE(
@@ -358,7 +358,7 @@ CALCULATE(
 )
 ```
 
-* 3. Receita Total
+3. Receita Total
 
 ```dax
 Receita Total = 
@@ -369,7 +369,7 @@ CALCULATE(
 )
 ```
 
-* Ticket Médio Global
+4. Ticket Médio Global
 
 ```dax
 Ticket Médio = DIVIDE([Receita Total], [Vendas Validadas], 0)
