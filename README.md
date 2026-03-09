@@ -338,19 +338,22 @@ A modelagem em Star Schema validou a inconsistência descoberta na Etapa 3. Embo
 
 Como a dimensão d_contacts foi higienizada, a integridade referencial do Power BI filtrou automaticamente esses 2 negócios órfãos, ajustando o volume de Vendas Validadas Líquidas para 119 (Receita de R$ 2.109.879,00). O dashboard foi desenvolvido sobre esta base higienizada para refletir o ROI real.
 
+<img width="637" height="451" alt="image" src="https://github.com/user-attachments/assets/546dd8f2-2815-4dc5-95ac-10867ece387c" />
+
 ### 4.3. Regras de Negócio e Medidas (DAX)
 
 Para o cálculo dinâmico das métricas no Dashboard, foram criadas medidas explícitas em DAX, respeitando as regras de validação
 
-1. Total de Leads Higienizados
+1. Total de Leads
 
 ```dax
 Total Leads = COUNTROWS('d_contacts')
 ```
 
-2. Volume de Vendas (Filtrando Status e Valor)
+2. Volume de Vendas
 
 ```dax
+Total Vendas (Won) = 
 CALCULATE(
     DISTINCTCOUNT('f_deals'[deal_id]),
     'f_deals'[status] = "won",
@@ -372,5 +375,231 @@ CALCULATE(
 4. Ticket Médio Global
 
 ```dax
-Ticket Médio = DIVIDE([Receita Total], [Vendas Validadas], 0)
+Ticket Medio = DIVIDE([Receita Total], [Total Vendas (Won)], 0)
 ```
+### 4.4 Protótipo Web e Escolha dos KPIs 
+
+Como complemento à solução de BI, desenvolvi um protótipo de Dashboard Executivo Web utilizando HTML, Tailwind CSS e JavaScript. O objetivo desta entrega é demonstrar proficiência em Data App Development e componentização visual com filtros dinâmicos que simulam o motor relacional.
+
+Para a visão executiva superior (Cards Principais), foram selecionados os 4 KPIs mais críticos para a operação da Clint:
+
+    * Total de Leads Únicos: Mede o esforço de atração e o tamanho real do topo de funil (excluindo cadastros duplicados).
+
+    * Vendas Validadas: Indica a eficiência de fechamento (fundo de funil), filtrando negócios perdidos ou com valores zerados inconsistentes.
+
+    * Receita Total: O principal indicador de sucesso comercial (ROI).
+
+    * Ticket Médio: Termômetro da qualidade das vendas e do perfil do cliente (Receita / Vendas).
+
+Código HTML para a construção dos cards principais:
+
+```html
+Cards_principais = 
+VAR vLeads = FORMAT([Total Leads], "#,0")
+VAR vVendas = FORMAT([Total Vendas (Won)], "#,0")
+VAR vReceita = FORMAT([Receita Total], "R$ #,0.00")
+VAR vTicket = FORMAT([Ticket Medio], "R$ #,0.00")
+
+VAR htmlString = "
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  /* Reset e estrutura principal */
+  .clint-cards-wrapper { 
+      display: flex; gap: 20px; font-family: 'Segoe UI', sans-serif; 
+      width: 100%; flex-wrap: wrap; padding: 10px; box-sizing: border-box;
+  }
+  
+  /* Estilo do Cartão Escuro com Tooltip Trigger */
+  .clint-card { 
+      flex: 1; min-width: 200px; background: #110c1f; border-radius: 12px; 
+      padding: 24px; position: relative; overflow: visible; 
+      box-shadow: 0 8px 20px rgba(0,0,0,0.4); border: 1px solid #2a1f43;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+      cursor: help; /* Cursor de interrogação/ajuda */
+  }
+  
+  .clint-card:hover { transform: translateY(-2px); border-color: #db2777; }
+
+  /* Linha de Degradê Superior */
+  .clint-card::before { 
+      content: ''; position: absolute; top: 0; left: 0; right: 0; 
+      height: 4px; background: linear-gradient(90deg, #7c3aed, #db2777); 
+      border-radius: 12px 12px 0 0;
+  }
+
+  /* Textos */
+  .card-title { color: #94a3b8; font-size: 13px; text-transform: uppercase; font-weight: 600; margin-bottom: 8px; }
+  .card-value { color: #ffffff; font-size: 32px; font-weight: 800; letter-spacing: -0.5px; }
+
+  /* Ícones de Fundo */
+  .icon-bg { position: absolute; right: 20px; top: 24px; opacity: 0.15; }
+  svg { width: 48px; height: 48px; stroke: url(#clintGrad); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+
+  /* --- O MÁGICO POP-UP (TOOLTIP) - AGORA PARA BAIXO --- */
+  .tooltip-box {
+      visibility: hidden;
+      opacity: 0;
+      position: absolute;
+      top: 110%; /* Fica embaixo do cartão */
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #0f172a;
+      color: #cbd5e1;
+      text-align: left;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #7c3aed;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.8);
+      width: 220px;
+      font-size: 11px;
+      line-height: 1.4;
+      z-index: 1000;
+      transition: opacity 0.3s, top 0.3s;
+      pointer-events: none;
+  }
+  
+  /* Triângulo apontando para cima */
+  .tooltip-box::after {
+      content: ''; position: absolute; bottom: 100%; left: 50%;
+      margin-left: -6px; border-width: 6px; border-style: solid;
+      border-color: transparent transparent #7c3aed transparent;
+  }
+
+  /* Mostrar tooltip no hover */
+  .clint-card:hover .tooltip-box { visibility: visible; opacity: 1; top: 105%; }
+  
+  .tooltip-title { color: #db2777; font-weight: bold; font-size: 12px; margin-bottom: 4px; display: block; border-bottom: 1px solid #334155; padding-bottom: 4px;}
+</style>
+</head>
+<body>
+  <svg style='width:0;height:0;position:absolute;' aria-hidden='true'><linearGradient id='clintGrad' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='#7c3aed' /><stop offset='100%' stop-color='#db2777' /></linearGradient></svg>
+
+  <div class='clint-cards-wrapper'>
+    
+    <!-- CARD 1 -->
+    <div class='clint-card'>
+        <div class='tooltip-box'>
+            <span class='tooltip-title'>Regra de Negócio: Leads</span>
+            Filtro de integridade aplicado: Exclusão rigorosa de registros com a tag 'DUPLICADO'. Identificamos 15 IDs na base bruta que burlaram o CRM, ajustando a base oficial para 800 leads únicos.
+        </div>
+        <div class='icon-bg'><svg viewBox='0 0 24 24'><path d='M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2'/><circle cx='9' cy='7' r='4'/><path d='M22 21v-2a4 4 0 0 0-3-3.87'/><path d='M16 3.13a4 4 0 0 1 0 7.75'/></svg></div>
+        <div class='card-title'>Total de Leads</div>
+        <div class='card-value'>" & vLeads & "</div>
+    </div>
+
+    <!-- CARD 2 -->
+    <div class='clint-card'>
+        <div class='tooltip-box'>
+            <span class='tooltip-title'>Regra de Negócio: Vendas</span>
+            Contabiliza apenas negócios com status 'won'. Vendas zeradas (R$ 0,00) ou atreladas a contatos duplicados (chaves órfãs) foram removidas para garantir o cálculo exato do Ticket Médio.
+        </div>
+        <div class='icon-bg'><svg viewBox='0 0 24 24'><polyline points='9 11 12 14 22 4'/><path d='M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11'/></svg></div>
+        <div class='card-title'>Vendas</div>
+        <div class='card-value'>" & vVendas & "</div>
+    </div>
+
+    <!-- CARD 3 -->
+    <div class='clint-card'>
+        <div class='tooltip-box'>
+            <span class='tooltip-title'>Regra de Negócio: Receita</span>
+            Receita líquida validada. Reflete o volume financeiro dos 119 negócios reais que possuem rastreabilidade total (Origem e Segmento) após a higienização do modelo de dados (Star Schema).
+        </div>
+        <div class='icon-bg'><svg viewBox='0 0 24 24'><line x1='12' y1='2' x2='12' y2='22'/><path d='M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6'/></svg></div>
+        <div class='card-title'>Receita Total</div>
+        <div class='card-value'>" & vReceita & "</div>
+    </div>
+
+    <!-- CARD 4 -->
+    <div class='clint-card'>
+        <div class='tooltip-box'>
+            <span class='tooltip-title'>Regra de Negócio: Ticket</span>
+            Cálculo seguro via DAX (Receita Total / Vendas Validadas). Ignora negócios perdidos ('lost') ou de teste, demonstrando o poder de compra real dos clientes convertidos.
+        </div>
+        <div class='icon-bg'><svg viewBox='0 0 24 24'><polyline points='23 6 13.5 15.5 8.5 10.5 1 18'/><polyline points='17 6 23 6 23 12'/></svg></div>
+        <div class='card-title'>Ticket Médio</div>
+        <div class='card-value'>" & vTicket & "</div>
+    </div>
+
+  </div>
+</body>
+</html>
+"
+RETURN htmlString
+```
+
+### 4.5. O Mistério dos 815 vs 800 Leads 
+
+Durante a migração da lógica de SQL para o Power BI, a auditoria de modelagem revelou uma falha silenciosa na base de dados bruta fornecida:
+
+A query SQL inicial, que filtrava leads baseando-se apenas na ausência da tag DUPLICADO, retornou 815 leads.
+
+No entanto, ao forçar a integridade de Chave Primária (contact_id únicos) para a construção do Star Schema no Power BI, o número caiu para 800 leads absolutos.
+
+Em vez de mascarar o erro mantendo os 815 (o que causaria um relacionamento de muitos-para-muitos e falhas nos filtros cruzados), optou-se por aplicar a remoção absoluta de duplicatas matemáticas (Table.Distinct) no Power Query.
+
+O Dashboard reflete o número real de 800 leads únicos, garantindo 100% de confiabilidade na taxa de conversão, e gerando um forte insight de negócio: O sistema atual de deduplicação e tagueamento de leads do CRM apresenta falhas e precisa de revisão técnica.
+
+
+### 4.7. UX Design e Data Storytelling (Tooltips Dinâmicos)
+
+Para garantir que as regras de governança de dados ficassem transparentes para quem consome o relatório, implementei Tooltips HTML/CSS interativos nos cartões de KPI superiores.
+
+Ao invés de criar notas de rodapé longas, o dashboard utiliza o comportamento de Hover (Cursor sobre o cartão). Ao passar o mouse sobre métricas como "Total de Leads" ou "Vendas", um pop-up nativo é acionado via código, explicando a regra de negócio aplicada (ex: a exclusão dos 15 IDs duplicados ou o filtro de valores zerados).
+
+Isso transforma o Dashboard em um ambiente autoexplicativo, reduzindo a sobrecarga cognitiva do usuário e atestando a qualidade técnica da auditoria realizada no backend do modelo.
+
+### 4.8 Construção das Visões e Gráficos
+
+Com a modelagem em Star Schema estabelecida e os KPIs definidos, a interface visual foi desenhada utilizando as boas práticas de Data Storytelling e UX Design (Dark Mode e paleta de cores institucional da Clint). Abaixo, detalho a engenharia por trás de cada visual:
+
+#### 4.8.1 Funil de Vendas Dinâmico (Análise de Conversão)
+
+Para que o funil fosse 100% responsivo aos filtros (Origem e Segmento), evitou-se o uso de uma coluna estática de categorias. Em vez disso, o funil foi arquitetado no Power BI utilizando 7 medidas DAX independentes, plotadas na ordem cronológica exata do processo comercial:
+
+-- 1. Topo do Funil (Base Higienizada)
+
+```dax
+Total Leads = COUNTROWS('d_contacts')
+```
+-- 2. Negócios Gerados
+
+```dax
+Funil 02 - Deals = CALCULATE(DISTINCTCOUNT('f_deals'[deal_id]))
+```
+
+-- 3. Qualificação de Marketing
+
+```dax
+Funil 03 - MQL = CALCULATE(DISTINCTCOUNT('f_pipeline'[deal_id]), 'f_pipeline'[stage] = "MQL")
+```
+
+-- 4. Agendamento SDR
+
+```dax
+Funil 04 - Reunião Agendada = CALCULATE(DISTINCTCOUNT('f_pipeline'[deal_id]), 'f_pipeline'[stage] = "Reunião Agendada")
+```
+
+-- 5. Reuniões Executadas
+
+```dax
+Funil 05 - Reunião Realizada = CALCULATE(DISTINCTCOUNT('f_pipeline'[deal_id]), 'f_pipeline'[stage] = "Reunião Realizada")
+```
+
+-- 6. Negociação
+
+```dax
+Funil 06 - Proposta = CALCULATE(DISTINCTCOUNT('f_pipeline'[deal_id]), 'f_pipeline'[stage] = "Proposta")
+```
+
+-- 7. Fundo do Funil (Vendas Ganhas validadas)
+
+```dax
+Total Vendas (Won)  = CALCULATE(DISTINCTCOUNT('f_deals'[deal_id]), 'f_deals'[status] = "won", 'f_deals'[valor] > 0)
+```
+A visualização em ordem do funil expôs uma quebra na linearidade do CRM. Temos 463 Reuniões Realizadas contra apenas 437 MQLs. Isso comprova que a equipe comercial está burlando o funil (registrando atividades retroativamente ou pulando a qualificação obrigatória).
+
+
+
+
