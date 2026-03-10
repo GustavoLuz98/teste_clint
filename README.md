@@ -552,42 +552,42 @@ Com a modelagem em Star Schema estabelecida e os KPIs definidos, a interface vis
 
 Para que o funil fosse 100% responsivo aos filtros (Origem e Segmento), evitou-se o uso de uma coluna estática de categorias. Em vez disso, o funil foi arquitetado no Power BI utilizando 7 medidas DAX independentes, plotadas na ordem cronológica exata do processo comercial:
 
--- 1. Topo do Funil (Base Higienizada)
+1. Topo do Funil (Base Higienizada)
 
 ```dax
 Total Leads = COUNTROWS('d_contacts')
 ```
--- 2. Negócios Gerados
+2. Negócios Gerados
 
 ```dax
 Funil 02 - Deals = CALCULATE(DISTINCTCOUNT('f_deals'[deal_id]))
 ```
 
--- 3. Qualificação de Marketing
+3. Qualificação de Marketing
 
 ```dax
 Funil 03 - MQL = CALCULATE(DISTINCTCOUNT('f_pipeline'[deal_id]), 'f_pipeline'[stage] = "MQL")
 ```
 
--- 4. Agendamento SDR
+4. Agendamento SDR
 
 ```dax
 Funil 04 - Reunião Agendada = CALCULATE(DISTINCTCOUNT('f_pipeline'[deal_id]), 'f_pipeline'[stage] = "Reunião Agendada")
 ```
 
--- 5. Reuniões Executadas
+5. Reuniões Executadas
 
 ```dax
 Funil 05 - Reunião Realizada = CALCULATE(DISTINCTCOUNT('f_pipeline'[deal_id]), 'f_pipeline'[stage] = "Reunião Realizada")
 ```
 
--- 6. Negociação
+6. Negociação
 
 ```dax
 Funil 06 - Proposta = CALCULATE(DISTINCTCOUNT('f_pipeline'[deal_id]), 'f_pipeline'[stage] = "Proposta")
 ```
 
--- 7. Fundo do Funil (Vendas Ganhas validadas)
+7. Fundo do Funil (Vendas Ganhas validadas)
 
 ```dax
 Total Vendas (Won)  = CALCULATE(DISTINCTCOUNT('f_deals'[deal_id]), 'f_deals'[status] = "won", 'f_deals'[valor] > 0)
