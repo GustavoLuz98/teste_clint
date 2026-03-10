@@ -620,6 +620,7 @@ Parcerias: Segue logo atrás com R$ 340.028.
 (Obs: O canal de "Eventos", algo custoso para as empresas, apresentou o pior desempenho em receita validada, com R$ 224.241).
 
 3. Existe algum segmento com maior potencial de vendas?
+   
 Sim. O mercado da Educação demonstrou ser o segmento mais lucrativo e com maior tração, gerando R$ 410.723 em receita líquida. O segmento de Advocacia aparece em segundo lugar (R$ 360.518). Por outro lado, o nicho de E-commerce apresenta o menor fit com o produto atual (apenas R$ 117.524).
 
 ### 5.2. Plano de Ação: Três Hipóteses para Aumento de Receita
