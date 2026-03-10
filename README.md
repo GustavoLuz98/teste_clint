@@ -394,11 +394,6 @@ Para a visão executiva superior (Cards Principais), foram selecionados os 4 KPI
 Código HTML para a construção dos cards principais:
 
 ```html
-Cards_principais = 
-VAR vLeads = FORMAT([Total Leads], "#,0")
-VAR vVendas = FORMAT([Total Vendas (Won)], "#,0")
-VAR vReceita = FORMAT([Receita Total], "R$ #,0.00")
-VAR vTicket = FORMAT([Ticket Medio], "R$ #,0.00")
 
 VAR htmlString = "
 <!DOCTYPE html>
@@ -411,16 +406,16 @@ VAR htmlString = "
       width: 100%; flex-wrap: wrap; padding: 10px; box-sizing: border-box;
   }
   
-  /* Estilo do Cartão Escuro com Tooltip Trigger */
+  /* Estilo do Cartão Escuro */
   .clint-card { 
       flex: 1; min-width: 200px; background: #110c1f; border-radius: 12px; 
       padding: 24px; position: relative; overflow: visible; 
       box-shadow: 0 8px 20px rgba(0,0,0,0.4); border: 1px solid #2a1f43;
       transition: transform 0.2s ease, border-color 0.2s ease;
-      cursor: help; /* Cursor de interrogação/ajuda */
+      cursor: help; 
   }
   
-  .clint-card:hover { transform: translateY(-2px); border-color: #db2777; }
+  .clint-card:hover { transform: translateY(-2px); border-color: #db2777; z-index: 50; }
 
   /* Linha de Degradê Superior */
   .clint-card::before { 
@@ -437,40 +432,39 @@ VAR htmlString = "
   .icon-bg { position: absolute; right: 20px; top: 24px; opacity: 0.15; }
   svg { width: 48px; height: 48px; stroke: url(#clintGrad); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; fill: none; }
 
-  /* --- O MÁGICO POP-UP (TOOLTIP) - AGORA PARA BAIXO --- */
+  /* --- BASE DO POP-UP --- */
   .tooltip-box {
-      visibility: hidden;
-      opacity: 0;
-      position: absolute;
-      top: 110%; /* Fica embaixo do cartão */
-      left: 50%;
-      transform: translateX(-50%);
-      background-color: #0f172a;
-      color: #cbd5e1;
-      text-align: left;
-      padding: 12px;
-      border-radius: 8px;
-      border: 1px solid #7c3aed;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.8);
-      width: 220px;
-      font-size: 11px;
-      line-height: 1.4;
-      z-index: 1000;
-      transition: opacity 0.3s, top 0.3s;
-      pointer-events: none;
+      visibility: hidden; opacity: 0; position: absolute;
+      background-color: #0f172a; color: #cbd5e1; text-align: left;
+      padding: 12px; border-radius: 8px; border: 1px solid #7c3aed;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.8); width: 220px;
+      font-size: 11px; line-height: 1.4; z-index: 100;
+      pointer-events: none; transition: all 0.3s ease;
   }
   
-  /* Triângulo apontando para cima */
-  .tooltip-box::after {
-      content: ''; position: absolute; bottom: 100%; left: 50%;
-      margin-left: -6px; border-width: 6px; border-style: solid;
-      border-color: transparent transparent #7c3aed transparent;
+  /* Título do Pop-up */
+  .tooltip-title { color: #db2777; font-weight: bold; font-size: 12px; margin-bottom: 4px; display: block; border-bottom: 1px solid #334155; padding-bottom: 4px;}
+
+  /* --- POP-UP PARA A DIREITA (Cards 1, 2 e 3) --- */
+  .tooltip-right { top: 50%; left: 115%; transform: translateY(-50%); }
+  .clint-card:hover .tooltip-right { visibility: visible; opacity: 1; left: 105%; }
+  /* Setinha apontando para a esquerda */
+  .tooltip-right::after {
+      content: ''; position: absolute; top: 50%; right: 100%;
+      margin-top: -6px; border-width: 6px; border-style: solid;
+      border-color: transparent #7c3aed transparent transparent;
   }
 
-  /* Mostrar tooltip no hover */
-  .clint-card:hover .tooltip-box { visibility: visible; opacity: 1; top: 105%; }
-  
-  .tooltip-title { color: #db2777; font-weight: bold; font-size: 12px; margin-bottom: 4px; display: block; border-bottom: 1px solid #334155; padding-bottom: 4px;}
+  /* --- POP-UP PARA A ESQUERDA (Card 4 - Ticket Médio) --- */
+  .tooltip-left { top: 50%; right: 115%; transform: translateY(-50%); }
+  .clint-card:hover .tooltip-left { visibility: visible; opacity: 1; right: 105%; }
+  /* Setinha apontando para a direita */
+  .tooltip-left::after {
+      content: ''; position: absolute; top: 50%; left: 100%;
+      margin-top: -6px; border-width: 6px; border-style: solid;
+      border-color: transparent transparent transparent #7c3aed;
+  }
+
 </style>
 </head>
 <body>
@@ -478,9 +472,9 @@ VAR htmlString = "
 
   <div class='clint-cards-wrapper'>
     
-    <!-- CARD 1 -->
+    <!-- CARD 1: Direita -->
     <div class='clint-card'>
-        <div class='tooltip-box'>
+        <div class='tooltip-box tooltip-right'>
             <span class='tooltip-title'>Regra de Negócio: Leads</span>
             Filtro de integridade aplicado: Exclusão rigorosa de registros com a tag 'DUPLICADO'. Identificamos 15 IDs na base bruta que burlaram o CRM, ajustando a base oficial para 800 leads únicos.
         </div>
@@ -489,9 +483,9 @@ VAR htmlString = "
         <div class='card-value'>" & vLeads & "</div>
     </div>
 
-    <!-- CARD 2 -->
+    <!-- CARD 2: Direita -->
     <div class='clint-card'>
-        <div class='tooltip-box'>
+        <div class='tooltip-box tooltip-right'>
             <span class='tooltip-title'>Regra de Negócio: Vendas</span>
             Contabiliza apenas negócios com status 'won'. Vendas zeradas (R$ 0,00) ou atreladas a contatos duplicados (chaves órfãs) foram removidas para garantir o cálculo exato do Ticket Médio.
         </div>
@@ -500,22 +494,22 @@ VAR htmlString = "
         <div class='card-value'>" & vVendas & "</div>
     </div>
 
-    <!-- CARD 3 -->
+    <!-- CARD 3: Direita -->
     <div class='clint-card'>
-        <div class='tooltip-box'>
+        <div class='tooltip-box tooltip-right'>
             <span class='tooltip-title'>Regra de Negócio: Receita</span>
-            Receita líquida validada. Reflete o volume financeiro dos 119 negócios reais que possuem rastreabilidade total (Origem e Segmento) após a higienização do modelo de dados (Star Schema).
+            Receita líquida validada. Reflete o volume financeiro dos 119 negócios reais que possuem rastreabilidade total (Origem e Segmento) após a higienização do modelo de dados.
         </div>
         <div class='icon-bg'><svg viewBox='0 0 24 24'><line x1='12' y1='2' x2='12' y2='22'/><path d='M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6'/></svg></div>
         <div class='card-title'>Receita Total</div>
         <div class='card-value'>" & vReceita & "</div>
     </div>
 
-    <!-- CARD 4 -->
+    <!-- CARD 4: Esquerda -->
     <div class='clint-card'>
-        <div class='tooltip-box'>
+        <div class='tooltip-box tooltip-left'>
             <span class='tooltip-title'>Regra de Negócio: Ticket</span>
-            Cálculo seguro via DAX (Receita Total / Vendas Validadas). Ignora negócios perdidos ('lost') ou de teste, demonstrando o poder de compra real dos clientes convertidos.
+            Cálculo seguro via DAX (Receita / Vendas). Ignora negócios perdidos ('lost') ou valores irreais, demonstrando o poder de compra verdadeiro dos clientes convertidos na base.
         </div>
         <div class='icon-bg'><svg viewBox='0 0 24 24'><polyline points='23 6 13.5 15.5 8.5 10.5 1 18'/><polyline points='17 6 23 6 23 12'/></svg></div>
         <div class='card-title'>Ticket Médio</div>
@@ -600,6 +594,87 @@ Total Vendas (Won)  = CALCULATE(DISTINCTCOUNT('f_deals'[deal_id]), 'f_deals'[sta
 ```
 A visualização em ordem do funil expôs uma quebra na linearidade do CRM. Temos 463 Reuniões Realizadas contra apenas 437 MQLs. Isso comprova que a equipe comercial está burlando o funil (registrando atividades retroativamente ou pulando a qualificação obrigatória).
 
+### 4.9 Acesso ao Dashboard
 
+https://app.powerbi.com/view?r=eyJrIjoiM2M5YTg2YmUtYjBmZi00MTI0LTlmZjgtOGRlMDIxZTVlNzM2IiwidCI6ImZhNzk1MzFjLThjZTUtNGJkMy05N2VlLTI0NWU2ZWUyNjZiOCJ9
 
+## 5. Análise Estratégica e Recomendações (Etapa 5)
+
+Com base na modelagem dos dados e na construção do dashboard interativo, foi possível extrair insights valiosos sobre a operação comercial da Clint.
+
+### 5.1. Respostas de Negócio
+
+1. Qual parece ser o maior gargalo do funil de vendas?
+O funil apresenta dois gargalos críticos, um de conversão e outro de processo:
+
+Gargalo de Conversão (Fundo de Funil): A maior perda de eficiência ocorre na transição de Proposta (419) para Vendas (119). Apenas ~28% das propostas enviadas são fechadas. Isso indica que o time comercial consegue levar o cliente até o fim da jornada, mas falha no fechamento (preço, objeções não contornadas ou falta de follow-up).
+
+Gargalo de Processo (Meio de Funil): Temos 463 Reuniões Realizadas contra apenas 437 MQLs. Há uma quebra na linearidade do CRM, evidenciando que os vendedores estão contornando a etapa de qualificação do marketing ou inserindo reuniões retroativamente.
+
+2. Quais origens de marketing parecem gerar mais receita?
+A análise do ROI por canal mostra uma liderança clara de duas origens:
+
+Meta Ads: Lidera o faturamento com R$ 403.664.
+
+Parcerias: Segue logo atrás com R$ 340.028.
+(Obs: O canal de "Eventos", algo custoso para as empresas, apresentou o pior desempenho em receita validada, com R$ 224.241).
+
+3. Existe algum segmento com maior potencial de vendas?
+Sim. O mercado da Educação demonstrou ser o segmento mais lucrativo e com maior tração, gerando R$ 410.723 em receita líquida. O segmento de Advocacia aparece em segundo lugar (R$ 360.518). Por outro lado, o nicho de E-commerce apresenta o menor fit com o produto atual (apenas R$ 117.524).
+
+### 5.2. Plano de Ação: Três Hipóteses para Aumento de Receita
+
+1. Verticalização das Campanhas para Educação e Advocacia
+
+Como os nichos de Educação e Advocacia são os mais rentáveis, a equipe de Marketing deve criar Landing Pages, Case Studies e anúncios no Meta Ads (melhor origem) exclusivos para estes setores. Falar a linguagem específica destes nichos tende a diminuir o Custo por Aquisição (CAC) e aumentar o Ticket Médio.
+
+2. Otimização da Etapa de "Proposta"
+
+Visto que 300 negócios morrem na etapa de proposta, devemos investigar o motivo das perdas. Implementar uma matriz de descontos estruturada, criar alertas automáticos de follow-up para propostas paradas há mais de 48 horas e treinar a equipe em contorno de objeções de preço pode aumentar a taxa de fechamento de vendas, injetando receita imediata sem gastar a mais em marketing.
+
+3. Auditoria de Processo e Redistribuição de Verba
+
+Primeiramente, o CRM (Clint) deve ter travas de sistema que impeçam o negócio de avançar para "Reunião" sem ter passado por "MQL" e sem preencher campos obrigatórios, garantindo a rastreabilidade futura. Simultaneamente, sugiro reduzir temporariamente o orçamento do canal "Outbound" e "Eventos" (piores performances) e realocar essa verba para o programa de "Parcerias" e "Orgânico", que demonstraram altíssimo potencial de retorno.
+
+## 6. Estruturação do Banco Analítico (Etapa 6)
+
+Para garantir uma operação orientada a dados (Data-Driven) escalável, segura e performática, a infraestrutura analítica de uma empresa não deve depender de extrações manuais, planilhas ou consultas diretas ao banco de dados transacional.
+
+### 6.1. Como organizaria as tabelas (Modelagem)
+
+A modelagem do banco analítico seria estruturada utilizando o conceito de Modelagem Dimensional (Star Schema / Esquema Estrela), separando os dados em duas naturezas principais:
+
+Tabelas de Dimensão: Armazenam o contexto descritivo do negócio (o "Quem", "Onde" e "Quando"). Devem ser estruturadas para garantir a unicidade de seus registros (Chave Primária única). Exemplos conceituais incluem dimensões de Clientes, Produtos, Vendedores e um Calendário central.
+
+Tabelas de Fato: Armazenam os eventos e métricas quantitativas (o "O Quê" e "Quanto"). Possuem chaves estrangeiras que se ligam às dimensões e armazenam os valores numéricos (Receita, Custos, Quantidades). Exemplos incluem Fatos de Vendas, Fatos de Movimentação de Funil e Fatos de Investimento em Marketing.
+
+### 6.2. Como faria a integração entre as fontes de dados
+
+Para centralizar dados provenientes de diferentes origens (CRMs, ERPs, Plataformas de Marketing, Bancos Relacionais), implementaria uma arquitetura ELT (Extract, Load, Transform) baseada em Cloud:
+
+Extração e Carga (E & L): Utilização de ferramentas de ingestão de dados automatizadas (como Airbyte). Essas ferramentas conectam-se às APIs das fontes originais e replicam os dados brutos de forma incremental para um Data Warehouse em nuvem (Google BigQuery, Snowflake ou Amazon Redshift).
+
+Transformação (T): Com os dados já armazenados no Data Warehouse, utilizaria o dbt (Data Build Tool) para realizar todas as transformações de dados via código SQL. O dbt permite limpar, padronizar e modelar os dados brutos para o formato Star Schema, garantindo que as regras de negócio sejam versionadas no Git e testadas em ambiente de homologação antes de irem para produção.
+
+### 6.3. Como automatizar a geração de relatórios
+
+A automação seria focada na eliminação de qualquer intervenção humana no fluxo de atualização dos dados:
+
+Orquestração de Pipelines: Utilização de um orquestrador (Airflow) para agendar e gerenciar as dependências do pipeline. O orquestrador aciona a ferramenta de ingestão, aguarda a finalização da extração e, em seguida, dispara as transformações do dbt.
+
+Integração com o BI: A ferramenta de visualização (Power BI, Metabase, Looker) seria conectada diretamente à camada semântica final do Data Warehouse.
+
+Gatilho de Atualização: A atualização do relatório no BI deixaria de ser por um horário fixo e passaria a ser acionada via API (Webhook) exatamente no momento em que o pipeline de dados é concluído com sucesso, garantindo que o usuário sempre veja o dado mais recente e confiável.
+
+### 6.4. Quais validações implementaria para garantir a integridade
+
+Para evitar que anomalias ou falhas no preenchimento dos sistemas de origem corrompam as métricas da empresa, a implementação de testes de Data Quality seria codificada na própria esteira de dados:
+
+Testes de Unicidade e Nulidade: Garantir que Chaves Primárias em tabelas de dimensão sejam sempre exclusivas e nunca possuam valores NULL, evitando a duplicação na contagem de métricas.
+
+Testes de Integridade Referencial: Validar automaticamente se todas as chaves estrangeiras presentes nas tabelas de Fato existem nas tabelas de Dimensão correspondentes (evitando chaves órfãs).
+
+Testes de Lógica de Negócio e Domínio: Criação de testes customizados para evitar cenários matematicamente impossíveis. Exemplos: garantir que a receita de vendas fechadas seja sempre maior que zero, que datas de fechamento não sejam anteriores às datas de criação do lead, e que campos categóricos aceitem apenas valores mapeados em domínio.
+
+Alertas de Anomalias: Se algum teste falhar durante a atualização diária, o pipeline bloqueia a propagação do dado corrompido para o Dashboard e emite um alerta instantâneo (via E-mail) para a equipe de Engenharia de Dados investigar a causa raiz.
 
